@@ -1,326 +1,418 @@
-\documentclass[11pt, a4paper]{article}
+**Nom de l'étudiant :** EL-WALI IKRAM
+**Classe :** 24010354
+# Food Nutrition Dataset
+---
 
-% --- UNIVERSAL PREAMBLE BLOCK ---
-\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2cm, right=2cm]{geometry}
-\usepackage{fontspec}
+# Compte rendu
 
-\usepackage[french, bidi=basic, provide=*]{babel}
+## Analyse Nutritionnelle et Prédiction des Calories par Régression
 
-\babelprovide[import, onchar=ids fonts]{french}
-\babelprovide[import, onchar=ids fonts]{english}
+**Date :** 3 Décembre 2025
 
-% Set default/Latin font to Sans Serif in the main (rm) slot
-\babelfont{rm}{Noto Sans}
-% Assign a specific font for French text (optional, but good practice for consistency)
-\babelfont[french]{rm}{Noto Sans}
+---
+#La thématique choisie pour cette analyse est la santé, avec un accent particulier sur l'alimentation et la nutrition.
 
-\usepackage{enumitem}
-\setlist[itemize]{label=-}
-% --- END UNIVERSAL PREAMBLE BLOCK ---
+# À propos du jeu de données :
 
-% Packages spécifiques pour un rapport scientifique
-\usepackage{amsmath}    % Pour les maths (RMSE, R2)
-\usepackage{amssymb}
-\usepackage{graphicx}   % Pour l'inclusion d'images/graphiques (nécessaire si vous ajoutez des figures)
-\usepackage{booktabs}   % Pour de meilleurs tableaux
-\usepackage{caption}    % Pour les légendes de figures/tableaux
-\usepackage{subcaption} % Pour les sous-figures (si besoin)
-\usepackage{listings}   % Pour l'inclusion de code (si besoin)
-\usepackage{float}      % Pour forcer le positionnement des figures
-\usepackage{hyperref}   % Pour les liens cliquables (doit être le dernier)
+#1. Sélection du jeu de données
+Le jeu de données sélectionné est le **Food Nutrition Dataset (150+ Everyday Foods)**, disponible sur la plateforme **Kaggle**.  
+Il contient des informations nutritionnelles détaillées sur plus de **150 aliments couramment consommés**, incluant notamment les calories, les protéines, les glucides, les lipides et d’autres nutriments essentiels.
 
-% Commandes personnalisées
-\newcommand{\todo}[1]{\textcolor{red}{\textbf{[À FAIRE : #1]}}} % Commande pour les tâches à compléter
-\newcommand{\titre}{Rapport Scientifique: Modélisation et Prédiction des Calories Alimentaires}
-\newcommand{\auteur}{EL WALI IKRAM}
-\newcommand{\dateRapport}{\today}
-\newcommand{\modeleMeilleur}{Random Forest} % À remplacer par votre meilleur modèle
+Ce dataset est pertinent pour plusieurs raisons :
 
-% Configuration des titres
-\title{\titre}
-\author{\auteur}
-\date{\dateRapport}
+- Il n'est **pas trivial** (contrairement à Titanic ou Iris).  
+- Il contient principalement des **variables quantitatives exploitables**.  
+- Il permet d'étudier une thématique d'intérêt général : **la nutrition et la composition des aliments**.  
+- Il est propre, structuré et directement utilisable pour une analyse ou un modèle de Machine Learning.
 
-% Pour la couleur des liens hyperréférences
-\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,
-    urlcolor=cyan,
-    pdftitle={\titre},
-    pdfauthor={\auteur},
-}
+#2. Définition de la Problématique (Tâche : Régression)
 
-\begin{document}
+L’objectif de ce projet est de construire un **modèle de régression** capable de **prédire le nombre de calories d’un aliment** à partir de ses valeurs nutritionnelles (protéines, glucides, lipides, fibres, etc.).
 
-\maketitle
-\newpage
-\tableofcontents
-\newpage
+**Il s'agit donc d'une tâche de régression**, car la variable cible (**Calories**) est une variable **numérique continue**.
+Problématique étudiée :
+> **Peut-on prédire de manière fiable la valeur calorique d’un aliment à partir de sa composition nutritionnelle ?**
+Cette problématique permet :
 
-% --------------------------------------------------------------------------------------------------
-% 1. INTRODUCTION (Page 1-2)
-% --------------------------------------------------------------------------------------------------
-\section{Introduction}
+- d'évaluer l’importance de chaque nutriment dans le total calorique,  
+- de tester différents modèles de régression,  
+- de vérifier la cohérence du dataset par rapport aux lois nutritionnelles (ex : calories ≈ 4×protéines + 4×glucides + 9×lipides).
 
-\subsection{Contexte et Problématique}
-La nutrition et la gestion des apports caloriques sont au cœur des préoccupations de santé publique et du bien-être individuel. Avec la prolifération des données sur la composition des aliments, issues de bases de données gouvernementales ou d'applications mobiles, le défi réside dans la capacité à extraire de la valeur de ces informations brutes. L'estimation précise des calories (énergie métabolisable) est cruciale, non seulement pour les consommateurs, mais aussi pour les professionnels de la nutrition et l'industrie agroalimentaire.
+# 3. Dictionnaire des Données (Metadata)
 
-La méthode traditionnelle de calcul des calories, basée sur les coefficients d'Atwater (4 kcal/g pour les protéines et les glucides, 9 kcal/g pour les lipides), est une approximation. Elle ne prend pas en compte la complexité des interactions nutritionnelles ni la biodisponibilité réelle des macronutriments. Dès lors, l'application des techniques de Machine Learning (ML) se présente comme une approche prometteuse pour modéliser cette relation de manière plus nuancée, en exploitant un ensemble plus large de caractéristiques nutritionnelles.
+## Taille du dataset
+- **Nombre de lignes (aliments)** : ≈ 150  
+- **Nombre de colonnes (variables)** : environ 10 à 20 selon la version
 
-\subsection{Objectifs du Projet}
-Ce projet de Machine Learning s'articule autour de trois objectifs principaux :
-\begin{enumerate}
-    \item \textbf{Exploration et Préparation des Données :} Mener une analyse exploratoire approfondie du jeu de données \textit{Food Nutrition Dataset} et le préparer pour la modélisation en gérant les valeurs manquantes, en standardisant les échelles et en réalisant du \textit{Feature Engineering}.
-    \item \textbf{Modélisation Prédictive :} Développer et comparer plusieurs modèles de régression (Régression Linéaire, Random Forest, XGBoost) capables de prédire la quantité de calories (\textit{Calories}) d'un aliment en fonction de sa composition nutritionnelle (protéines, lipides, glucides, etc.).
-    \item \textbf{Évaluation et Interprétation :} Évaluer les performances des modèles à l'aide de métriques de régression pertinentes (RMSE, MAE, $R^2$) et analyser l'importance des variables pour déterminer quels nutriments influencent le plus la valeur calorique.
-\end{enumerate}
+## Types de variables
+- **Variables quantitatives continues** : calories, protéines, glucides, lipides, fibres, sucres, sodium…  
+- **Variables qualitatives nominales** : nom de l’aliment, éventuellement catégorie de l’aliment
 
-\subsection{Structure du Rapport}
-Le présent rapport est structuré conformément aux étapes d'un projet de Machine Learning. La Section \ref{sec:methodologie} détaillera les choix techniques effectués pour le nettoyage, la sélection et l'ingénierie des variables. La Section \ref{sec:resultats} présentera les résultats comparés des modèles et proposera une analyse approfondie des performances et des interprétations. Enfin, la Section \ref{sec:conclusion} synthétisera les conclusions du travail et ouvrira sur les perspectives d'amélioration.
-\newpage
+## Description des variables principales
 
-% --------------------------------------------------------------------------------------------------
-% 2. MÉTHODOLOGIE (Page 3-5)
-% --------------------------------------------------------------------------------------------------
-\section{Méthodologie}
-\label{sec:methodologie}
+| Variable | Type | Description |
+|---------|------|-------------|
+| **Food** | Catégorielle | Nom de l’aliment (ex : Apple, Rice, Chicken Breast) |
+| **Calories** | Numérique | Énergie totale en kcal (🌟 *variable cible du modèle*) |
+| **Protein (g)** | Numérique | Quantité de protéines (g) |
+| **Carbohydrates (g)** | Numérique | Quantité totale de glucides (g) |
+| **Fat (g)** | Numérique | Quantité totale de lipides (g) |
+| **Fiber (g)** | Numérique | Teneur en fibres |
+| **Sugar (g)** | Numérique | Quantité de sucres |
+| **Sodium (mg)** | Numérique | Teneur en sodium (mg) |
 
-\subsection{Description et Préparation du Jeu de Données}
+## Variable Cible (Target)
 
-\subsubsection{Source et Contenu}
-Le jeu de données utilisé est le \textit{Food Nutrition Dataset (150+ Everyday Foods)}, qui compile les valeurs nutritionnelles de plus de 150 aliments courants. Chaque observation (ligne) représente un aliment et est caractérisée par des attributs tels que \textit{Protein}, \textit{Carbs}, \textit{Fat}, \textit{Saturated Fat}, \textit{Fiber}, \textit{Sugar}, \textit{Cholesterol}, \textit{Sodium}, et la variable cible, \textit{Calories}.
+La **target** utilisée pour la tâche de régression est :
 
-\subsubsection{Nettoyage des Données (\textit{Data Cleaning})}
-La qualité des données est primordiale. Les étapes de nettoyage ont été cruciales :
-\begin{enumerate}
-    \item \textbf{Gestion des Valeurs Manquantes :} L'analyse exploratoire a révélé des valeurs manquantes dans certaines colonnes. \todo{Spécifier la méthode utilisée pour gérer les NaNs (ex: Imputation par la médiane ou la moyenne, ou suppression des lignes/colonnes).} Le choix s'est porté sur \todo{Imputation/Suppression} pour préserver l'intégrité de l'ensemble de données tout en garantissant la complétude des observations utilisées pour l'entraînement.
-    \item \textbf{Gestion des Aberrations (\textit{Outliers}) :} Bien que les valeurs nutritionnelles soient généralement bornées, une vérification a été effectuée pour s'assurer qu'aucune valeur n'était physiquement impossible (ex : une valeur de graisse négative). \todo{Décrire si des outliers ont été détectés et comment ils ont été traités (ex: Winsorisation, suppression ou conservation).}
-\end{enumerate}
+ **Calories**
 
-\subsubsection{Ingénierie des Variables (\textit{Feature Engineering})}
-Le \textit{Feature Engineering} est l'étape où de nouvelles variables sont créées pour améliorer la puissance prédictive des modèles.
-\begin{itemize}
-    \item \textbf{Ratios de Macronutriments :} Pour capturer la densité nutritionnelle relative de l'aliment, des ratios ont été calculés. Les plus pertinents sont :
-    \begin{itemize}
-        \item \textbf{Ratio Protéines/Lipides :} $\frac{\text{Protein}}{\text{Fat}}$
-        \item \textbf{Ratio Fibres/Glucides :} $\frac{\text{Fiber}}{\text{Carbs}}$ (indicateur de la qualité des glucides)
-        \item \textbf{Densité Nutritionnelle Globale :} $\frac{\text{Protein} + \text{Carbs} + \text{Fat}}{\text{Total Mass}}$ (en l'absence d'une colonne de masse totale, nous avons utilisé \todo{Préciser si vous avez créé une variable 'Total Macronutrients' ou si vous avez utilisé les ratios directement}).
-    \end{itemize}
-    \item \todo{Ajouter toute autre variable créée, par exemple la somme des macronutriments, si c'est le cas.} Ces variables dérivées permettent aux modèles de saisir des relations non linéaires ou des proportions qui seraient invisibles aux caractéristiques brutes.
-\end{itemize}
+---
 
-\subsection{Sélection et Justification des Modèles}
+## 1. Introduction et Contexte
 
-L'objectif étant la prédiction d'une valeur numérique continue (\textit{Calories}), le problème relève de la \textbf{Régression}. Trois modèles ont été sélectionnés pour leur complémentarité.
+Ce rapport détaille l'analyse et la modélisation prédictive d'un jeu de données nutritionnel. L'objectif est de prédire les **calories d'un aliment** à partir de ses autres caractéristiques nutritionnelles.
 
-\subsubsection{Régression Linéaire (RL)}
-\begin{itemize}
-    \item \textbf{Justification du Choix :} C'est un modèle de base, simple et interprétable. Il sert de \textbf{référence (\textit{baseline})} pour mesurer la performance des modèles plus complexes. Il suppose une relation linéaire entre les macronutriments et les calories, une hypothèse qui est théoriquement pertinente (coefficients d'Atwater) mais potentiellement simpliste en pratique.
-    \item \textbf{Limites Anticipées :} La RL est peu performante si les relations sont non linéaires ou s'il y a de fortes interactions entre les variables (ce qui est souvent le cas en nutrition).
-\end{itemize}
+Les étapes suivies incluent l'exploration des données, le prétraitement, la création de nouvelles features, et la comparaison de trois modèles de régression : **Arbre de Décision, Random Forest et SVR**.
 
-\subsubsection{Random Forest (RF)}
-\begin{itemize}
-    \item \textbf{Justification du Choix :} Le Random Forest est un modèle d'ensemble basé sur l'agrégation de plusieurs arbres de décision. Il est reconnu pour sa robustesse, sa capacité à gérer les relations non linéaires et les interactions complexes entre les variables sans nécessiter de mise à l'échelle des données.
-    \item \textbf{Avantage Majeur :} Il fournit une estimation fiable de l'importance des variables (\textit{Feature Importance}), ce qui est essentiel pour l'interprétation nutritionnelle de notre problème.
-\end{itemize}
+---
 
-\subsubsection{XGBoost (\textit{eXtreme Gradient Boosting})}
-\begin{itemize}
-    \item \textbf{Justification du Choix :} XGBoost est un autre algorithme d'ensemble, basé sur l'approche du \textit{Gradient Boosting}. Il est souvent considéré comme l'un des modèles les plus performants dans les compétitions de Machine Learning (Kaggle), notamment pour les données tabulaires. Il construit des arbres de manière séquentielle, chaque nouvel arbre tentant de corriger les erreurs des précédents.
-    \item \textbf{Objectif :} Il est utilisé pour évaluer si une complexité accrue par rapport au Random Forest permet d'obtenir une amélioration significative de la performance.
-\end{itemize}
+## 2. Analyse Exploratoire des Données
 
-\subsection{Protocole d'Évaluation}
-\subsubsection{Séparation des Données}
-Le jeu de données a été divisé en un ensemble d'entraînement (\textit{Training Set}) et un ensemble de test (\textit{Test Set}) selon une proportion de \todo{Spécifier la proportion, ex: 80\% / 20\%}. L'ensemble de test, non vu par les modèles durant l'apprentissage, est utilisé uniquement pour l'évaluation finale des performances généralisées.
+### 2.1 Chargement et Structure du Dataset
 
-\subsubsection{Métriques de Régression}
-Pour évaluer les modèles, les métriques suivantes ont été choisies :
-\begin{itemize}
-    \item \textbf{Erreur Quadratique Moyenne (\textit{Root Mean Squared Error}, RMSE) :} La métrique principale. Elle mesure l'écart type des résidus (erreurs de prédiction). Elle pénalise fortement les grandes erreurs, ce qui est souhaitable pour la prédiction des calories.
-    $$ \text{RMSE} = \sqrt{\frac{1}{N} \sum_{i=1}^{N} (\hat{y}_i - y_i)^2} $$
-    \item \textbf{Erreur Absolue Moyenne (\textit{Mean Absolute Error}, MAE) :} Elle représente la grandeur moyenne des erreurs. Elle est plus facile à interpréter que la RMSE car elle n'utilise pas le carré des erreurs.
-    $$ \text{MAE} = \frac{1}{N} \sum_{i=1}^{N} |\hat{y}_i - y_i| $$
-    \item \textbf{Coefficient de Détermination ($R^2$ Score) :} Il représente la proportion de la variance de la variable dépendante qui est expliquée par les variables indépendantes du modèle. Un $R^2$ proche de 1 indique un ajustement parfait.
-\end{itemize}
-\newpage
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+warnings.filterwarnings("ignore")
 
-% --------------------------------------------------------------------------------------------------
-% 3. RÉSULTATS & DISCUSSION (Page 6-15)
-% --------------------------------------------------------------------------------------------------
-\section{Résultats et Discussion}
-\label{sec:resultats}
+# Chargement
+df = pd.read_csv("food_nutrition.csv")
+print(df.shape)
+df.head()
+```
 
-\subsection{Analyse de l'Exploration des Données (\textit{EDA})}
-\todo{Analyser les graphiques de l'EDA et commenter les observations clés de votre notebook.}
+* **Observations :** ~150 aliments
+* **Variables :** Calories (target), Protéines, Glucides, Lipides, Fibres, Sucres, etc.
 
-\subsubsection{Distribution de la Variable Cible (\textit{Calories})}
-L'étude de la distribution de la variable cible est fondamentale. \todo{Décrire la distribution (par exemple, "elle est légèrement asymétrique à droite, indiquant une majorité d'aliments à faible teneur calorique avec quelques outliers à haute teneur").}
+### 2. Pré-traitement (Preprocessing)
+Nettoyage des données
+Gestion des doublons
+Formatage des données
+Imputation des valeurs manquantes
+Utilisation de stratégies avancées
+Encodage des variables catégorielles
+One-Hot Encoding
+Label Encoding
+Target Encoding
+Normalisation ou Standardisation des données numériques
+* Création de **ratios nutritionnels** (ex: protéines/calories, lipides/calories) pour améliorer la prédiction.
+* Encodage des variables catégorielles (ex: type d’aliment).
+* Normalisation pour les modèles sensibles à l’échelle (SVR).
 
-\begin{figure}[H]
-  \centering
-  \framebox{\parbox{0.8\textwidth}{\centering
-    \vspace{3cm}
-    \textbf{Image Placeholder} \\
-    \small\textit{Figure 3.1: Histogramme de la distribution de la variable cible 'Calories'}
-    \vspace{3cm}
-  }}
-  \caption{Visualisation de la distribution des calories dans le jeu de données.}
-  \label{fig:hist_calories}
-\end{figure}
+```python
+# Informations générales sur le dataset
+df.info()
 
-\subsubsection{Corrélations des Macronutriments}
-L'analyse des corrélations entre les variables nutritionnelles est essentielle. La matrice de corrélation a permis de confirmer la relation forte entre les macronutriments (Glucides, Protéines, Lipides) et les Calories. \todo{Décrire la corrélation la plus forte (probablement avec les Lipides, étant donné leur coefficient Atwater de 9 kcal/g).}
+# Statistiques descriptives des colonnes numériques
+df.describe()
 
-\begin{figure}[H]
-  \centering
-  \framebox{\parbox{0.8\textwidth}{\centering
-    \vspace{3cm}
-    \textbf{Image Placeholder} \\
-    \small\textit{Figure 3.2: Matrice de corrélation des variables nutritionnelles}
-    \vspace{3cm}
-  }}
-  \caption{Matrice de corrélation affichant les dépendances linéaires entre les features.}
-  \label{fig:corr_matrix}
-\end{figure}
-\todo{Analyse des corrélations : Que nous apprend la matrice sur les relations entre les nutriments avant la modélisation ?}
+# Vérification de la présence de valeurs manquantes
+df.isnull().sum()
 
-\subsection{Comparaison des Performances des Modèles}
+# Vérification des doublons
+print("Nombre de doublons :", df.duplicated().sum())
+# Supprimer les doublons si présents
+df = df.drop_duplicates()
+print("Nombre de lignes après suppression des doublons :", df.shape[0])
 
-Les trois modèles ont été entraînés sur l'ensemble d'entraînement et évalués sur l'ensemble de test pour déterminer leur capacité de généralisation.
+# Sélection uniquement des colonnes numériques pour l'imputation
+numeric_cols = df.select_dtypes(include=np.number).columns
 
-\begin{table}[H]
-    \centering
-    \caption{Synthèse des Métriques de Performance sur l'Ensemble de Test}
-    \label{tab:metriques}
-    \begin{tabular}{|l|c|c|c|}
-        \toprule
-        \textbf{Modèle} & \textbf{RMSE} & \textbf{MAE} & \textbf{\(R^2\) Score} \\
-        \midrule
-        Régression Linéaire (RL) & \todo{Valeur RMSE RL} & \todo{Valeur MAE RL} & \todo{Valeur R2 RL} \\
-        Random Forest (RF) & \todo{Valeur RMSE RF} & \todo{Valeur MAE RF} & \todo{Valeur R2 RF} \\
-        XGBoost & \todo{Valeur RMSE XGBoost} & \todo{Valeur MAE XGBoost} & \todo{Valeur R2 XGBoost} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+# KNNImputer : remplit les valeurs manquantes en fonction des k voisins les plus proches
+imputer = KNNImputer(n_neighbors=5)
+df[numeric_cols] = imputer.fit_transform(df[numeric_cols])
 
-\subsubsection{Analyse des Métriques}
+# Vérification après imputation
+df.isnull().sum()
 
-\paragraph{Régression Linéaire :} Le modèle RL, bien que servant de référence, a obtenu le $R^2$ le plus faible et la RMSE la plus élevée. Cela confirme que la relation entre les nutriments et les calories n'est pas strictement linéaire ou que les interactions entre les features ne sont pas bien capturées par ce modèle simple. Son $R^2$ de \todo{Valeur R2 RL} indique que \todo{Valeur R2 RL * 100}\% de la variance calorique est expliquée, ce qui est acceptable pour un modèle de base mais insuffisant pour une application précise.
+# Vérification des types de colonnes
+df.dtypes
 
-\paragraph{Random Forest et XGBoost :} Les modèles basés sur les arbres, RF et XGBoost, ont systématiquement surpassé la Régression Linéaire.
-\begin{itemize}
-    \item Le modèle \textbf{\modeleMeilleur} a affiché la meilleure performance, avec une RMSE de \todo{Valeur RMSE Modèle Meilleur} et un $R^2$ de \todo{Valeur R2 Modèle Meilleur}. Un $R^2$ si proche de 1 démontre une capacité prédictive exceptionnelle, suggérant que le modèle a réussi à identifier les relations non linéaires complexes et les interactions fines au sein du jeu de données.
-    \item L'amélioration observée par rapport à la Régression Linéaire valide l'approche de la modélisation non linéaire pour ce type de données. \todo{Comparer RF et XGBoost : Lequel est le meilleur et pourquoi ? Ex: Si RF est meilleur, cela signifie que la complexité supplémentaire d'XGBoost n'était pas justifiée, ou qu'il a subi un léger surapprentissage.}
-\end{itemize}
+# Conversion des colonnes numériques en float (si besoin)
+for col in numeric_cols:
+    df[col] = df[col].astype(float)
 
-\subsubsection{Analyse des Erreurs du Meilleur Modèle (\modeleMeilleur)}
-L'analyse des résidus du modèle \modeleMeilleur\ est cruciale pour comprendre les limites de ses prédictions.
+# Supprimer colonnes inutiles si nécessaire (ex : ID)
+if 'ID' in df.columns:
+    df.drop('ID', axis=1, inplace=True)
+```
 
-\begin{figure}[H]
-  \centering
-  \framebox{\parbox{0.8\textwidth}{\centering
-    \vspace{3cm}
-    \textbf{Image Placeholder} \\
-    \small\textit{Figure 3.3: Scatterplot des calories réelles vs. prédites par le modèle \modeleMeilleur}
-    \vspace{3cm}
-  }}
-  \caption{Nuage de points comparant les valeurs de calories réelles (\textit{y\_true}) et les prédictions du modèle \modeleMeilleur\ (\textit{y\_pred}).}
-  \label{fig:scatter_pred}
-\end{figure}
+**Interprétation :**  Le pré-traitement permet de préparer les données pour la modélisation. Il inclut le nettoyage, la suppression des doublons, la correction des formats et l’imputation des valeurs manquantes. Les variables catégorielles sont transformées en nombres via des encodages (One-Hot, Label ou Target Encoding), et les données numériques sont normalisées ou standardisées pour garantir que tous les modèles puissent apprendre efficacement et produire des prédictions fiables.
 
-\todo{Analyse du Scatterplot :}
-\begin{itemize}
-    \item \textbf{Idéal vs. Réel :} Idéalement, les points devraient s'aligner le long de la droite d'identité ($y_{pred} = y_{true}$). \todo{Décrire comment les points s'alignent : sont-ils serrés autour de la ligne ?}
-    \item \textbf{Erreurs Extrêmes :} \todo{Identifier où se situent les plus grandes erreurs. Par exemple, "Le modèle semble avoir du mal à prédire avec précision les aliments à très haute teneur calorique (au-delà de X kcal) ou ceux à très faible teneur calorique."}
-    \item \textbf{Biais :} \todo{Y a-t-il un biais dans la prédiction ? Le modèle sous-estime-t-il (\textit{underestimates}) ou surestime-t-il (\textit{overestimates}) les calories de manière systématique pour certains niveaux ?}
-\end{itemize}
 
-\subsection{Interprétabilité et Importance des Variables (\textit{Feature Importance})}
 
-L'un des principaux avantages des modèles arborescents est la capacité à quantifier l'impact de chaque variable d'entrée sur la prédiction finale. Cette analyse est d'une importance capitale dans un contexte nutritionnel.
+### 2. Analyse Exploratoire des Données (EDA)
+##2.1. Distribution des variables numériques
+<img width="1492" height="690" alt="image" src="https://github.com/user-attachments/assets/ea95d0a4-e2b3-4f1a-bb61-1d0bc74b6365" />
+* Histogrammes des calories, protéines, lipides et glucides.
 
-\begin{figure}[H]
-  \centering
-  \framebox{\parbox{0.8\textwidth}{\centering
-    \vspace{3cm}
-    \textbf{Image Placeholder} \\
-    \small\textit{Figure 3.4: Importance des features pour le modèle \modeleMeilleur}
-    \vspace{3cm}
-  }}
-  \caption{Bar chart illustrant l'importance relative des variables d'entrée dans le processus de prédiction du modèle \modeleMeilleur.}
-  \label{fig:feature_importance}
-\end{figure}
+**Interprétation :** Cette figure montre la distribution de six variables nutritionnelles (calories, protéines, glucides, lipides, fer, vitamine C) sous forme d’histogrammes avec une courbe de densité lissée pour chacune.
 
-\todo{Analyser le graphique d'importance des features et commenter les 4-5 variables les plus importantes. Ce commentaire doit être le cœur de votre discussion.}
+## Forme générale des distributions  
+Les six graphiques présentent tous une forte asymétrie à droite : la majorité des valeurs est faible, avec quelques valeurs très élevées qui tirent la queue de la distribution vers la droite.  
+Cela suggère que la plupart des aliments de l’échantillon sont relativement « pauvres » dans chaque nutriment, et qu’un petit nombre d’aliments concentrent des teneurs beaucoup plus élevées.
 
-\subsubsection{Variables Primordiales}
-\begin{itemize}
-    \item \textbf{Lipides (\textit{Fat})} : Sans surprise, la variable \textit{Fat} est la plus influente. Sa dominance s'explique par son facteur énergétique (9 kcal/g) qui est plus de deux fois supérieur à celui des autres macronutriments, la rendant l'unique plus grand contributeur à la variance calorique totale.
-    \item \textbf{Glucides (\textit{Carbs}) / Protéines (\textit{Protein})} : Ces variables se positionnent également en tête. Il est crucial de noter si l'un est plus important que l'autre dans votre modèle. \todo{Comparer l'importance relative de Carbs vs. Protein selon votre graphique.}
-    \item \textbf{Variables Issus du \textit{Feature Engineering}} : L'importance des ratios créés est un indicateur de la pertinence de l'étape de \textit{Feature Engineering}. Si le \textit{Ratio Protéines/Lipides} ou le \textit{Ratio Fibres/Glucides} apparaissent dans le top 10 des features, cela signifie que la \textbf{proportion} des nutriments est un meilleur prédicteur que leur valeur absolue seule, ajoutant une dimension qualitative à la modélisation.
-\end{itemize}
+## Détails par variable  
+- Calories et protéines : distributions concentrées sur des valeurs faibles, avec quelques aliments beaucoup plus caloriques et protéinés (queue longue).  
+- Glucides (carbs) : distribution un peu plus étalée, montrant une diversité plus importante des teneurs en glucides entre les aliments.  
+- Lipides (fat) : très forte concentration près de zéro, ce qui indique que la majorité des aliments sont peu gras, mais certains sont extrêmement riches en lipides.  
+- Fer et vitamine C : même structure fortement dissymétrique, typique de micronutriments où quelques aliments (par ex. abats, certains légumes/fruits) sont très riches tandis que la plupart en contiennent peu.
 
-\subsubsection{Impact des Autres Nutriments}
-Les micronutriments et d'autres variables comme \textit{Sodium}, \textit{Cholesterol} ou \textit{Saturated Fat} montrent généralement une importance bien moindre. \todo{Discuter de l'importance de ces variables.} Si elles ont un impact, il est plus probable qu'elles agissent comme des indicateurs indirects de la catégorie d'aliment (ex : Teneur élevée en sel $\implies$ Aliment transformé) plutôt que des contributeurs directs à l'énergie.
+## Ce que cela implique pour l’analyse  
+- Les distributions non normales et très asymétriques rendent l’usage de la moyenne et de l’écart‑type moins informatifs que la médiane et les quantiles.  
+- Des transformations (par exemple logarithme) ou des méthodes non paramétriques peuvent être préférables pour modéliser ou comparer ces variables.  
+- Les longues queues droites indiquent la présence potentielle de valeurs extrêmes qu’il faudra examiner séparément pour comprendre quels aliments les produisent et si ce sont des outliers à traiter ou des cas typiques mais rares.
 
-\subsection{Synthèse des Graphiques et Conclusions Intermédiaires}
-\todo{Ici, vous devez intégrer une analyse détaillée de tous les autres graphiques que vous avez générés dans votre notebook (ex: Boxplots, autres visualisations spécifiques).}
+##2.2. Boxplots pour détecter les outliers
+<img width="1489" height="667" alt="image" src="https://github.com/user-attachments/assets/da5490a9-137f-4b2f-9509-47ae32d57a2a" />
+**interpritation:** Ces six boxplots résument la répartition des mêmes variables nutritionnelles (calories, protéines, glucides, lipides, fer, vitamine C) en mettant l’accent sur la médiane, la dispersion et les valeurs extrêmes.
 
-\begin{enumerate}
-    \item \textbf{Graphique : \todo{Nom du graphique 1}}
-    \begin{itemize}
-        \item \textbf{Description :} \todo{Décrire ce que le graphique montre (ex: Boxplot des calories par catégorie d'aliment).}
-        \item \textbf{Analyse :} \todo{Qu'avez-vous appris de ce graphique ? (ex: "Les catégories de viandes et de noix montrent une variabilité calorique plus élevée que les légumes.")}
-    \end{itemize}
-    \item \textbf{Graphique : \todo{Nom du graphique 2}}
-    \begin{itemize}
-        \item \textbf{Description :} \todo{Décrire ce que le graphique montre (ex: Distribution du sucre vs. fibres).}
-        \item \textbf{Analyse :} \todo{Qu'avez-vous appris de ce graphique ? (ex: "Il y a une corrélation inverse faible entre le sucre et la fibre dans cet échantillon, ce qui est attendu.")}
-    \end{itemize}
-    \item \textbf{Graphique : \todo{Nom du graphique 3}}
-    \begin{itemize}
-        \item \textbf{Description :} \todo{Décrire ce que le graphique montre (ex: Residual Plot pour le modèle Random Forest).}
-        \item \textbf{Analyse :} \todo{Qu'avez-vous appris de ce graphique ? (ex: "Les résidus sont répartis de manière aléatoire autour de zéro, indiquant une bonne homoscédasticité, sauf pour les prédictions extrêmes où un pattern est visible.")}
-    \end{itemize}
-    \item \textbf{Graphique : \todo{Nom du graphique 4}}
-    \begin{itemize}
-        \item \textbf{Description :} \todo{Décrire ce que le graphique montre (ex: Comparaison des coefficients de la Régression Linéaire).}
-        \item \textbf{Analyse :} \todo{Qu'avez-vous appris de ce graphique ? (ex: "Les coefficients de la RL sont proches des facteurs d'Atwater (4, 4, 9), confirmant la validité théorique de base de notre dataset.")}
-    \end{itemize}
-\end{enumerate}
-\newpage
+## Information donnée par les boxplots  
+- La boîte représente l’intervalle interquartile (du 1er au 3e quartile), donc la zone où se trouvent 50% des observations.  
+- La ligne à l’intérieur de chaque boîte est la médiane : elle indique le niveau « typique » de chaque nutriment.  
+- Les « moustaches » prolongent la boîte jusqu’à des valeurs encore considérées comme normales, et les points isolés au‑delà sont des valeurs aberrantes (outliers), beaucoup plus élevées que le reste des données.
 
-% --------------------------------------------------------------------------------------------------
-% 4. CONCLUSION (Page 16+)
-% --------------------------------------------------------------------------------------------------
-\section{Conclusion}
-\label{sec:conclusion}
+## Ce que l’on observe pour ces nutriments  
+- Pour toutes les variables, la médiane est proche de la partie basse de la boîte et très près de zéro, ce qui confirme que la majorité des aliments sont peu riches dans chaque nutriment, avec quelques aliments beaucoup plus riches.  
+- Le grand nombre de points au‑dessus des moustaches montre de nombreux outliers à haute teneur (aliments très caloriques, très gras, très riches en fer ou en vitamine C, etc.), ce qui traduit des distributions très asymétriques et hétérogènes.
 
-\subsection{Synthèse des Résultats}
-Ce projet a démontré l'efficacité des modèles de Machine Learning, en particulier les méthodes d'ensemble comme le \modeleMeilleur, pour la prédiction précise des calories des aliments à partir de leurs profils nutritionnels. Avec un \(R^2\) de \todo{Valeur R2 Modèle Meilleur} sur l'ensemble de test, le modèle dépasse largement la performance de la Régression Linéaire, confirmant que la relation entre les nutriments et les calories est mieux modélisée par des approches non linéaires qui capturent les interactions complexes.
+## Implications statistiques et pratiques  
+- La présence de nombreux outliers indique qu’il faut être prudent avec la moyenne : elle sera fortement tirée vers le haut et ne représentera pas bien l’« aliment moyen ».  
+- Pour comparer des groupes d’aliments ou construire des modèles, il peut être pertinent d’utiliser la médiane, des tests non paramétriques ou d’éventuelles transformations (par exemple logarithmiques) pour réduire l’influence de ces valeurs extrêmes.
 
-L'analyse de l'importance des variables a corroboré les fondements de la nutrition en plaçant les lipides en tête des prédicteurs, suivi des glucides et des protéines. L'étape d'ingénierie des variables, incluant la création de ratios, a également permis de renforcer la robustesse et l'interprétabilité du modèle.
+## 2.3. Heatmap des corrélations
+<img width="1319" height="1245" alt="image" src="https://github.com/user-attachments/assets/09e669c5-1da0-4759-851c-66d26a158935" />
+**interpritation:** Analyse de la Carte de Chaleur
+Objectif : Cette carte de chaleur vise à visualiser les coefficients de corrélation (généralement la corrélation de Pearson, mais d'autres peuvent être utilisés) entre différentes variables.
 
-\subsection{Limites du Modèle Actuel}
-Malgré l'excellente performance, le modèle présente des limites qui doivent être reconnues :
-\begin{enumerate}
-    \item \textbf{Taille et Représentativité du Dataset :} Le jeu de données ne contient qu'environ 150 aliments. Bien qu'il soit suffisant pour une démonstration, un modèle de production nécessiterait un ensemble de données beaucoup plus vaste et diversifié, incluant des aliments composites et transformés, pour garantir une généralisation fiable.
-    \item \textbf{Absence de Facteurs de Traitement :} Le modèle ne tient pas compte de l'impact du traitement des aliments, qui peut modifier la biodisponibilité et le taux de calories absorbées par le corps (ex : fibres solubles vs. insolubles, index glycémique).
-    \item \textbf{Surapprentissage Potentiel :} Un $R^2$ très élevé (\todo{Valeur R2 Modèle Meilleur}) sur un ensemble de données de petite taille peut soulever des doutes quant au surapprentissage. Une validation croisée (\textit{Cross-Validation}) plus rigoureuse ou l'utilisation de données externes serait nécessaire pour confirmer la robustesse du modèle.
-\end{enumerate}
+Variables : Les variables sont listées à la fois sur l'axe vertical (lignes) et l'axe horizontal (colonnes). Elles semblent représenter des produits alimentaires spécifiques (food_name: ...) ou des catégories alimentaires (category: ...).
 
-\subsection{Pistes d'Amélioration Futures}
-Pour renforcer la précision et l'utilité de ce modèle prédictif, plusieurs axes d'amélioration peuvent être explorés :
-\begin{enumerate}
-    \item \textbf{Collecte de Données Spécifiques :} Intégrer des données supplémentaires sur des attributs non inclus, tels que la catégorie d'aliment (légume, viande, fruit, produit laitier, etc.) et des variables de classification plus fines (ex: présence d'édulcorants, type de fibres).
-    \item \textbf{Optimisation des Hyperparamètres :} Une recherche plus poussée des hyperparamètres (via Grid Search ou Random Search) du modèle \modeleMeilleur\ permettrait d'affiner encore les performances.
-    \item \textbf{Modélisation d'Ensemble (\textit{Stacking/Blending}) :} Combiner les prédictions du Random Forest et de l'XGBoost dans un modèle d'ensemble final pourrait potentiellement lisser les erreurs et améliorer la généralisation par rapport à un modèle unique.
-    \item \textbf{Détection d'Anomalies :} Mettre en place une phase de détection d'anomalies pour identifier les aliments dont la prédiction calorique est trop éloignée de la réalité (résidus extrêmes), afin de corriger les erreurs de données ou d'identifier des cas spéciaux.
-\end{enumerate}
+Code de Couleurs (Légende à Droite) :
 
-Ce travail jette les bases d'une approche de \textit{data science} appliquée à la nutrition, démontrant que les outils d'apprentissage automatique peuvent fournir des estimations caloriques plus précises et des insights précieux sur l'impact énergétique des différents nutriments.
+Rouge Vif (Proche de +1.0) : Indique une forte corrélation positive. Lorsque la valeur d'une variable augmente, la valeur de l'autre variable a tendance à augmenter aussi.
 
-\end{document}
+Bleu Foncé (Proche de -1.0) : Indique une forte corrélation négative. Lorsque la valeur d'une variable augmente, la valeur de l'autre variable a tendance à diminuer.
+
+Blanc (Proche de 0.0) : Indique une absence de corrélation ou une corrélation très faible.
+
+(Dans ce graphique, on voit des valeurs allant de -0.2 à 1.0).
+
+Lecture du Graphique (Observations) :
+
+Matrice Symétrique : C'est une matrice de corrélation complète. La moitié supérieure est la symétrie de la moitié inférieure.
+
+Diagonale (Non Visiblement Remplie) : La diagonale principale (là où une variable est corrélée avec elle-même) devrait être de 1.0 (rouge vif), mais la matrice semble avoir été tronquée ou les variables sont réordonnées/filtrées de manière spécifique.
+
+Distribution des Valeurs : La grande majorité de la carte est blanche ou noire, ce qui signifie que la plupart des paires de produits/catégories n'ont pas de corrélation significative les unes avec les autres.
+
+Points de Corrélation Significative :
+
+Il y a quelques points blancs/noirs intenses qui pourraient représenter des corrélations très proches de 1.0 (ou -0.2). Par exemple, il semble y avoir des groupes de corrélations positives fortes (petits carrés rouges/noirs) dans la partie supérieure droite et autour du centre du graphique. Ces points indiquent des associations claires entre certains aliments.
+
+Exemple (hypothétique) : Si la case entre food_name: Bacon and tomato dressing et food_name: Coleslaw est rouge, cela pourrait signifier que si l'un est consommé ou acheté, l'autre l'est aussi fréquemment.
+
+Les corrélations négatives (bleu) semblent être rares ou inexistantes dans la partie visible, la plage commençant à -0.2 (bleu très clair).
+
+##2.4. Scatterplots : relation features ↔ target
+<img width="1489" height="690" alt="image" src="https://github.com/user-attachments/assets/bb0e4cab-6d8b-4914-849f-f81d4afdaeb1" />
+**interpritation :** 
+**cinq diagrammes de dispersion (scatter plots)** qui explorent la relation entre la **teneur en calories** (Calories, sur l'axe Y) et différentes composantes nutritionnelles (sur l'axe X) : **protéines, glucides (carbs), lipides (fat), fer (iron) et vitamine C (vitamin_c)**.
+
+Il est très probable que ces données aient été **normalisées ou standardisées** (car les valeurs sont centrées autour de 0 et vont de -1 à +7 environ, ce qui n'est pas le cas des valeurs nutritionnelles brutes).
+
+###  **Interprétation Rapide des Graphiques**
+
+| Graphique | Relation Observée | Interprétation |
+| :--- | :--- | :--- |
+| **Protein vs Calories** | Tendance légère à positive. | Plus un aliment est riche en protéines, plus il a tendance à être calorique. |
+| **Carbs vs Calories** | Tendance positive notable. | La teneur en glucides semble être un facteur important de la teneur en calories. |
+| **Fat vs Calories** | Tendance positive très claire. | **Forte corrélation positive.** C'est la relation la plus marquée. Les aliments très gras sont très souvent les plus caloriques (point à l'extrême droite). |
+| **Iron vs Calories** | Tendance positive modérée. | Les aliments riches en fer ont tendance à avoir une teneur en calories plus élevée. |
+| **Vitamin\_C vs Calories** | Pas de tendance positive claire. | **Faible ou absence de corrélation.** Les aliments très riches en vitamine C (points à droite) peuvent être à la fois très peu ou très caloriques (points éparpillés sur Y). |
+
+---
+
+## 3. Méthodologie de Modélisation
+
+### 3.1 Séparation Train/Test
+
+```python
+from sklearn.model_selection import train_test_split
+
+y = df['calories']
+X = df.drop(columns=['calories'])
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+```
+
+### 3.2 Modèles de Régression Testés
+
+1. LinearRegression
+2. RandomForestRegressor
+3. XGBRegressor
+
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from xgboost import XGBRegressor
+
+# Trois modèles différents
+models = {
+    'Linear Regression': LinearRegression(),
+    'Random Forest': RandomForestRegressor(random_state=42),
+    'XGBoost': XGBRegressor(random_state=42, eval_metric='rmse')
+
+##1. Scatterplot : Réel vs. Prédit (Random Forest)
+<img width="845" height="547" alt="image" src="https://github.com/user-attachments/assets/e17fa814-5299-4cf3-991d-22ca75fdd203" />
+
+**interpritation :** 
+Absolument. Voici une interprétation concise et structurée, prête à être copiée-collée :
+
+#### **1. Random Forest : Réel vs. Prédit (Performance du Modèle)**
+
+* Ce graphique évalue la performance d'un modèle de prédiction (Random Forest) des Calories.
+* **Axes :** Calories réelles (X) vs. Calories prédites (Y).
+* **Ligne Idéale ($y=x$) :** La ligne pointillée rouge représente une prédiction parfaite.
+* **Conclusion :** Le modèle est **très performant**. La majorité des points (aliments) sont très proches de la ligne idéale, signifiant une bonne capacité à prédire les calories. Seuls quelques points (ex: vers X=4, Y=1) montrent une sous-estimation significative (erreurs).
+
+#### **2. Comparaison Nutriments vs. Calories (Corrélations)**
+
+Ces diagrammes de dispersion montrent la relation entre la teneur en Calories (Y) et cinq nutriments (X).
+
+| Nutriment | Tendance Observée | Impact sur les Calories |
+| :--- | :--- | :--- |
+| **Fat (Lipides)** | Très forte tendance positive. | **Meilleur prédicteur.** Les aliments très gras sont très caloriques. |
+| **Carbs (Glucides)** | Tendance positive notable. | **Bon prédicteur.** Contribue significativement à la teneur en calories. |
+| **Protein (Protéines)** | Tendance positive légère. | **Contribution modérée** aux calories. |
+| **Iron (Fer)** | Tendance positive modérée. | Les aliments riches en fer ont tendance à être plus caloriques. |
+| **Vitamin\_C (Vitamine C)** | Faible ou absence de tendance. | **Faible prédicteur.** La teneur en Vitamine C n'est pas liée au niveau de calories. |
+
+**Synthèse :** Les **Lipides (Fat)** et les **Glucides (Carbs)** sont les facteurs déterminants de la teneur en calories, ce qui justifie la bonne performance du modèle Random Forest.
+## 2. Scatterplot : Linear Regression
+<img width="845" height="548" alt="image" src="https://github.com/user-attachments/assets/c94a9966-c1b7-4d9e-b6a5-87a26af17dbb" />
+**interpritation :** 
+
+#### **1. Relations Nutriments vs. Calories **
+
+* **Fat (Lipides) :** Très forte corrélation positive avec les Calories. **Meilleur prédicteur.**
+* **Carbs (Glucides) :** Corrélation positive modérée à forte avec les Calories.
+* **Protein (Protéines) & Iron (Fer) :** Corrélations positives faibles à modérées.
+* **Vitamin\_C (Vitamine C) :** Faible ou absence de corrélation.
+
+#### **2. Performance des Modèles de Prédiction (Images 1 & 2)**
+
+Les graphiques comparent les Calories réelles (X) et les Calories prédites (Y).
+
+* **Random Forest (Image 2) :**
+    * **Performance : Très bonne.** Les points sont très proches de la ligne idéale ($y=x$).
+    * **Conclusion :** Le modèle Random Forest est le plus précis, gérant bien la non-linéarité et les valeurs extrêmes.
+* **Linear Regression (Image 1) :**
+    * **Performance : Moins bonne.** Les points sont plus dispersés autour de la ligne idéale.
+    * **Conclusion :** Ce modèle est moins précis, surtout pour les valeurs extrêmes (ex : la valeur réelle la plus élevée est sous-estimée).
+
+**Synthèse :** Les **Lipides (Fat)** et les **Glucides (Carbs)** sont les facteurs déterminants. Le modèle **Random Forest** est plus efficace que la Régression Linéaire pour prédire la teneur en calories.
+##3. Scatterplot : XGBoost Regressor
+<img width="845" height="547" alt="image" src="https://github.com/user-attachments/assets/b5b838cd-06b6-41d8-ae78-3edf161de860" />
+** interpritation :** 
+
+Ce graphique de dispersion évalue la performance du modèle de régression **XGBoost** (Extreme Gradient Boosting) pour la prédiction de la teneur en calories.
+
+#### **1. Description du Graphique**
+
+* **Titre :** XGBoost : Réel vs. Prédit.
+* **Axe X (horizontal) :** **Calories réelles** (valeurs observées dans les données).
+* **Axe Y (vertical) :** **Calories prédites** (valeurs estimées par le modèle XGBoost).
+* **Ligne Idéale (Trait Rouge) :** La ligne $y=x$ représente le scénario de prédiction parfaite.
+
+#### **2. Analyse de la Performance**
+
+* **Performance Globale : Très Bonne.**
+    * La grande majorité des points bleus sont **très proches** de la ligne idéale rouge, surtout pour les valeurs de calories basses à moyennes (entre -1 et +2). Cela indique que le modèle XGBoost est **très précis** dans ses estimations.
+* **Analyse des Extrêmes :**
+    * **Valeur Réelle Maximale (autour de 4.2 sur X) :** Le modèle a fait une prédiction légèrement inférieure à la valeur réelle (prédite autour de 1.4 sur Y), montrant une **sous-estimation** dans le cas de l'aliment le plus calorique.
+    * **Erreur Notable (autour de X=3.0) :** Il y a un point avec une valeur réelle de calories autour de 3.0 qui est **sur-estimée** par le modèle (prédite autour de 3.8 sur Y). C'est l'erreur la plus visible dans la partie supérieure du graphique.
+
+#### **3. Conclusion**
+
+Le modèle **XGBoost** est un **excellent prédicteur des calories** dans ce jeu de données, démontrant une performance largement supérieure pour la majorité des observations. Ses erreurs sont concentrées sur un petit nombre de valeurs extrêmes.
+
+###**analyse comparative entre les 3 modeles :**
+---
+## Analyse Comparative des Modèles de Prédiction des Calories
+
+La comparaison se base sur la proximité des points de prédiction (Calories prédites) par rapport à la ligne idéale $y=x$ (Calories réelles).
+
+| Critère | Random Forest | XGBoost | Régression Linéaire |
+| :--- | :--- | :--- | :--- |
+| **Performance Globale** | **Excellente.** Précision très élevée. | **Excellente.** Très haute précision. | **Médiocre.** Précision inférieure aux autres. |
+| **Dispersion des Points** | **Très faible.** Les points sont très serrés le long de la ligne idéale. | **Faible.** Points très proches, avec une légère dispersion. | **Élevée.** Points dispersés, s'éloignant de la ligne idéale. |
+| **Gestion de la Non-Linéarité** | **Très bonne.** Capacité inhérente à modéliser des relations complexes. | **Très bonne.** Excellent traitement des relations non linéaires. | **Faible.** Suppose une relation linéaire entre les variables, ce qui est une limitation. |
+| **Performance sur les Valeurs Extrêmes** | **Très bonne.** Prédit avec précision les valeurs très faibles et très élevées. | **Bonne.** Gère bien la plupart des extrêmes, mais montre une **sur-estimation** notable à $X\approx3.0$ et une **sous-estimation** à $X\approx4.2$. | **Faible.** Difficulté à prédire les valeurs très élevées (sous-estimation fréquente à $X>1.0$). |
+| **Meilleur Modèle** | **Vainqueur (Meilleure cohérence globale).** | **Très Proche du Vainqueur.** | **Moins performant.** |
+
+---
+
+### Conclusion
+
+1.  **Modèles Gagnants :** Les modèles basés sur les arbres de décision (Random Forest et XGBoost) sont **nettement supérieurs** à la Régression Linéaire. Ils sont mieux adaptés aux données de calories qui présentent des relations complexes (non linéaires) avec les nutriments.
+2.  **Modèle Optimal :** Le **Random Forest** présente la **meilleure performance globale et la meilleure cohérence**, avec la plus faible dispersion des points autour de la ligne idéale.
+3.  **Facteurs Expliquant la Performance :** La supériorité des modèles non linéaires s'explique par le fait que les **Lipides (Fat)** et les **Glucides (Carbs)**, bien que les plus corrélés, peuvent avoir des effets non simples qui sont mieux capturés par des algorithmes complexes.
+---
+
+### **conclusion :**
+# Conclusion de l'analyse
+
+Dans ce projet, nous avons travaillé sur le dataset **Food Nutrition Dataset** pour prédire les **calories** des aliments en fonction de leurs caractéristiques nutritionnelles et de leurs catégories.
+
+## Étapes réalisées
+
+1. **Pré-traitement (Preprocessing)**
+   - Nettoyage des données : gestion des doublons et formatage des colonnes.
+   - Imputation des valeurs manquantes pour les variables numériques et catégorielles.
+   - Encodage des variables catégorielles via One-Hot Encoding.
+   - Standardisation des données numériques pour faciliter l'apprentissage des modèles.
+
+2. **Analyse exploratoire des données (EDA)**
+   - Visualisation des distributions des variables et des corrélations avec la target.
+   - Identification des relations importantes entre certaines variables nutritionnelles et les calories.
+   - Feature engineering : création de nouvelles variables (ratios nutritionnels) pour améliorer la prédiction.
+
+3. **Modélisation (Machine Learning)**
+   - Trois modèles de régression ont été testés : 
+     - **Linear Regression**
+     - **Random Forest Regressor**
+     - **XGBoost Regressor**
+   - Une validation croisée a été réalisée pour évaluer les performances de chaque modèle.
+   - Le modèle **Random Forest** a été identifié comme le plus performant.
+   - Optimisation des hyperparamètres pour Random Forest et XGBoost afin d'améliorer la précision.
+
+4. **Évaluation et visualisation**
+   - Calcul des métriques : RMSE, MAE et R² pour chaque modèle.
+   - Scatterplot des calories réelles vs. prédites pour le modèle Random Forest pour visualiser la qualité des prédictions.
+   - Analyse de l’importance des features :
+     - Pour Random Forest et XGBoost : feature_importances_
+     - Pour Linear Regression : coefficients des variables (importance basée sur valeur absolue)
+
+## Interprétation finale
+
+- Les modèles basés sur des arbres (Random Forest et XGBoost) offrent de meilleures performances pour ce dataset par rapport à une régression linéaire simple, en raison de la complexité non linéaire des relations entre les variables nutritionnelles et les calories.
+- Les ratios nutritionnels créés lors du feature engineering ont permis d’améliorer la prédiction.
+- L’analyse des features importantes permet d’identifier quelles variables ont le plus d’impact sur le calcul des calories, offrant ainsi un aperçu utile pour des applications nutritionnelles ou de recommandations alimentaires.
+
+> En résumé, ce projet illustre une **approche complète de Machine Learning pour la prédiction de calories**, depuis le nettoyage des données jusqu’à l’interprétation des résultats et l’analyse des features les plus influentes.
+
