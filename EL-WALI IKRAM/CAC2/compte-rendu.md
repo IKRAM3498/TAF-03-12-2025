@@ -1,5 +1,5 @@
 **Nom de l'étudiant :** EL-WALI IKRAM
-#**Classe :** 24010354
+**Classe :** 24010354
 # Food Nutrition Dataset
 ---
 
